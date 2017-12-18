@@ -10,7 +10,7 @@ Find a set of differentially expressed genes between two user defined volumes of
 * nibabel
 * xmltodict
 
-### Installing
+### Installation
 ```
 git clone https://github.com/haimasree/Jugex.git
 cd Jugex

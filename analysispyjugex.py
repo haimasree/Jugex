@@ -12,6 +12,7 @@ import shutil
 import multiprocessing
 import nibabel as nib
 import logging
+import csv
 """
 Find a set of differentially expressed genes between two user defined volumes of interest based on JuBrain maps. The tool downloads expression values of user specified sets of genes from Allen Brain API. Then, it uses zscores to find which genes are expressed differentially between the user specified regions of interests. This tool is available as a Python package.
 Example:
@@ -139,7 +140,7 @@ class Analysis:
         """
         if not gene_list:
             raise ValueError('Atleast one gene is needed for the analysis')
-        if not (isinstance(roi1, nib.nifti1.Nifti1Image) and isinstance(roi2, nib.nifti1.Nifti1Image)):
+        if not (isinstance(roi1['data'], nib.nifti1.Nifti1Image) and isinstance(roi2['data'], nib.nifti1.Nifti1Image)):
             raise ValueError('Atleast two valid regions of interest are needed')
         self.set_candidate_genes(gene_list)
         self.set_roi_MNI152(roi1, 0)
@@ -272,8 +273,9 @@ class Analysis:
         """
         revised_samples_zscores_and_specimen_dict = dict.fromkeys(['zscores', 'coords', 'specimen', 'name'])
         revised_samples_zscores_and_specimen_dict['name'] = 'img{}'.format(str(index+1))
-        img_arr = roi.get_data()
-        invroiMni = np.linalg.inv(roi.affine)
+        revised_samples_zscores_and_specimen_dict['realname'] = roi['name']
+        img_arr = roi['data'].get_data()
+        invroiMni = np.linalg.inv(roi['data'].affine)
         T = np.dot(invroiMni, specimen['alignment3d'])
         coords = transform_samples_MRI_to_MNI52(index_to_samples_zscores_and_specimen_dict['samples'], T)
         coords = (np.rint(coords)).astype(int)
@@ -422,6 +424,28 @@ class Analysis:
         self.genesymbol_and_mean_zscores['uniqueId'] = unique_gene_symbols
         self.genesymbol_and_mean_zscores['combined_zscores'] = winsorzed_mean_zscores
 
+
+    def accumulate_roicoords_and_name(self):
+        """
+        Populate roi names, coordinates and sample well and polygon id for display
+        """
+        areainfo = {}
+        for roi_coord_zscore in self.filtered_coords_and_zscores:
+            key = roi_coord_zscore['realname']
+            if key not in areainfo:
+                areainfo[key] = []
+            i = 0
+            for c in roi_coord_zscore['coords']:
+                areainfo[key].append({'xyz' : c, 'winsorzed_mean' : self.genesymbol_and_mean_zscores['combined_zscores'][i]})
+                i = i+1
+
+        with open('sample_coords_winsorzed_mean.csv', 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['ROI', 'x', 'y', 'z'] + self.genesymbol_and_mean_zscores['uniqueId'].tolist())
+            for key, val in areainfo.items():
+                for i in range(len(val)):
+                    writer.writerow([key]+val[i]['xyz'].tolist()+val[i]['winsorzed_mean'].tolist())
+
     def initialize_anova_factors(self):
         """
         Prepare self.anova_factors. Populate Age, Race, Area, Specimen, Zcores keys of self.anova_factors
@@ -442,6 +466,8 @@ class Analysis:
         st = set(self.specimen_factors['name'])
         self.anova_factors['Age'] = [self.specimen_factors['age'][self.specimen_factors['name'].index(specimen_name)] for ind, specimen_name in enumerate(self.anova_factors['Specimen'])]
         self.anova_factors['Race'] = [self.specimen_factors['race'][self.specimen_factors['name'].index(specimen_name)] for ind, specimen_name in enumerate(self.anova_factors['Specimen'])]
+        self.accumulate_roicoords_and_name()
+
 
     def first_iteration(self):
         """

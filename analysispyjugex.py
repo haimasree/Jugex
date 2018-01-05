@@ -468,34 +468,20 @@ class Analysis:
                 areainfo[key] = []
             i = 0
             for c in roi_coord_zscore['coords']:
-                areainfo[key].append({'xyz' : c, 'winsorzed_mean' : self.genesymbol_and_mean_zscores['combined_zscores'][i]})
+                if self.single_probe_mode:
+                    areainfo[key].append({'xyz' : c, 'winsorzed_mean' : self.combined_zscores[i]})
+                else:
+                    areainfo[key].append({'xyz' : c, 'winsorzed_mean' : self.genesymbol_and_mean_zscores['combined_zscores'][i]})
                 i = i+1
-
-        with open('sample_coords_winsorzed_mean_zscores.csv', 'w') as csvfile:
+        filename = 'sample_coords_winsorzed_mean_zscores.csv'
+        if self.single_probe_mode:
+            filename = 'sample_coords_zscores.csv'
+        with open(filename, 'w') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['ROI', 'x', 'y', 'z'] + self.genesymbol_and_mean_zscores['uniqueId'].tolist())
-            for key, val in areainfo.items():
-                for i in range(len(val)):
-                    writer.writerow([key]+val[i]['xyz'].tolist()+val[i]['winsorzed_mean'].tolist())
-
-
-    def accumulate_roicoords_and_name_single_probe_mode(self):
-        """
-        Populate roi names, coordinates and sample well and polygon id for display
-        """
-        areainfo = {}
-        for roi_coord_zscore in self.filtered_coords_and_zscores:
-            key = roi_coord_zscore['realname']
-            if key not in areainfo:
-                areainfo[key] = []
-            i = 0
-            for c in roi_coord_zscore['coords']:
-                areainfo[key].append({'xyz' : c, 'winsorzed_mean' : self.combined_zscores[i]})
-                i = i+1
-        print(areainfo)
-        with open('sample_coords_zscores.csv', 'w') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['ROI', 'x', 'y', 'z'] + self.probe_keys)
+            if self.single_probe_mode:
+                writer.writerow(['ROI', 'x', 'y', 'z'] + self.probe_keys)
+            else:
+                writer.writerow(['ROI', 'x', 'y', 'z'] + self.genesymbol_and_mean_zscores['uniqueId'].tolist())
             for key, val in areainfo.items():
                 for i in range(len(val)):
                     writer.writerow([key]+val[i]['xyz'].tolist()+val[i]['winsorzed_mean'].tolist())
@@ -504,14 +490,20 @@ class Analysis:
         """
         Prepare self.anova_factors. Populate Age, Race, Area, Specimen, Zcores keys of self.anova_factors
         """
-        combined_zscores = [roi_coord_and_zscore['zscores'][i] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))]
+        if self.single_probe_mode:
+            self.combined_zscores = np.array([roi_coord_and_zscore['zscores'][i] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))])
+        else:
+            combined_zscores = [roi_coord_and_zscore['zscores'][i] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))]
         #Populates self.specimenFactors (id, race, gender, name, age)
         self.read_specimen_factors(self.cache_dir)
         if self.verbose:
             logging.getLogger(__name__).info("number of specimens: {} name: {}".format(len(self.specimen_factors), len(self.specimen_factors['name'])))
         #Populates self.genesymbol_and_mean_zscores (uniqueid and zscores)
-        self.get_mean_zscores(combined_zscores)
-        self.n_genes = len(self.genesymbol_and_mean_zscores['combined_zscores'][0])
+        if self.single_probe_mode:
+            self.n_genes = len(self.combined_zscores[0])
+        else:
+            self.get_mean_zscores(combined_zscores)
+            self.n_genes = len(self.genesymbol_and_mean_zscores['combined_zscores'][0])
         self.anova_factors['Area'] = [roi_coord_and_zscore['name'] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))]
         self.anova_factors['Specimen'] = [roi_coord_and_zscore['specimen'] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))]
         '''
@@ -522,53 +514,16 @@ class Analysis:
         self.anova_factors['Race'] = [self.specimen_factors['race'][self.specimen_factors['name'].index(specimen_name)] for ind, specimen_name in enumerate(self.anova_factors['Specimen'])]
         self.accumulate_roicoords_and_name()
 
-
-    def initialize_anova_factors_single_probe_mode(self):
-        """
-        Prepare self.anova_factors. Populate Age, Race, Area, Specimen, Zcores keys of self.anova_factors for single probe mode
-        """
-        self.combined_zscores = np.array([roi_coord_and_zscore['zscores'][i] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))])
-        #Populates self.specimenFactors (id, race, gender, name, age)
-        self.read_specimen_factors(self.cache_dir)
-        if self.verbose:
-            logging.getLogger(__name__).info("number of specimens: {} name: {}".format(len(self.specimen_factors), len(self.specimen_factors['name'])))
-        #Populates self.genesymbol_and_mean_zscores (uniqueid and zscores)
-        #self.get_mean_zscores(combined_zscores)
-        #self.n_genes = len(self.genesymbol_and_mean_zscores['combined_zscores'][0])
-        self.n_genes = len(self.combined_zscores[0])
-        self.anova_factors['Area'] = [roi_coord_and_zscore['name'] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))]
-        self.anova_factors['Specimen'] = [roi_coord_and_zscore['specimen'] for roi_coord_and_zscore in self.filtered_coords_and_zscores for i in range(len(roi_coord_and_zscore['zscores']))]
-        '''
-        Both Age and Race should have len(self.filtered_coords_and_zscores) entries. The following three lines are used to get the correct values from specimenFactors['Age'] and specimenFactors['Race'] using specimenFactors['name'] and repeat them the required number of times as given by self.anova_factors['Specimen']
-        '''
-        st = set(self.specimen_factors['name'])
-        self.anova_factors['Age'] = [self.specimen_factors['age'][self.specimen_factors['name'].index(specimen_name)] for ind, specimen_name in enumerate(self.anova_factors['Specimen'])]
-        self.anova_factors['Race'] = [self.specimen_factors['race'][self.specimen_factors['name'].index(specimen_name)] for ind, specimen_name in enumerate(self.anova_factors['Specimen'])]
-        self.accumulate_roicoords_and_name_single_probe_mode()
-
-
     def first_iteration(self):
         """
         Perform one iteration of ANOVA. Use output of this to populate F_vec_ref_anovan which becomes initial estimate of n_rep passes of FWE.
         """
         self.F_vec_ref_anovan = np.zeros(self.n_genes)
         for i in range(self.n_genes):
-            self.anova_factors['Zscores'] = self.genesymbol_and_mean_zscores['combined_zscores'][:,i]
-            mod = ols('Zscores ~ Area + Specimen + Age + Race', data=self.anova_factors).fit()
-            aov_table = sm.stats.anova_lm(mod, typ=1)
-            if self.verbose:
-                logging.getLogger(__name__).info('aov table: {}'.format(aov_table))
-            #F_vec_ref_anovan is used as an initial condition to F_mat_perm_anovan in fwe_correction
-            self.F_vec_ref_anovan[i] = aov_table['F'][0]
-
-
-    def first_iteration_single_probe_mode(self):
-        """
-        Perform one iteration of ANOVA. Use output of this to populate F_vec_ref_anovan which becomes initial estimate of n_rep passes of FWE.
-        """
-        self.F_vec_ref_anovan = np.zeros(self.n_genes)
-        for i in range(self.n_genes):
-            self.anova_factors['Zscores'] = self.combined_zscores[:,i]
+            if self.single_probe_mode:
+                self.anova_factors['Zscores'] = self.combined_zscores[:,i]
+            else:
+                self.anova_factors['Zscores'] = self.genesymbol_and_mean_zscores['combined_zscores'][:,i]
             mod = ols('Zscores ~ Area + Specimen + Age + Race', data=self.anova_factors).fit()
             aov_table = sm.stats.anova_lm(mod, typ=1)
             if self.verbose:
@@ -644,12 +599,8 @@ class Analysis:
         Perform one way anova on zscores as the dependent variable and specimen factors such as age, race, name and area
         as independent variables
         """
-        if self.single_probe_mode:
-            self.initialize_anova_factors_single_probe_mode()
-            self.first_iteration_single_probe_mode()
-        else:
-            self.initialize_anova_factors()
-            self.first_iteration()
+        self.initialize_anova_factors()
+        self.first_iteration()
         self.fwe_correction()
 
     def build_specimen_factors(self, cache):

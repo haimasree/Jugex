@@ -96,6 +96,7 @@ class Analysis:
         """
         self.probe_ids = []
         self.gene_list = []
+        self.probe_keys = []
         self.gene_list_to_download = []
         self.gene_symbols = []
         self.gene_cache = {}
@@ -169,7 +170,6 @@ class Analysis:
         base_retrieve_probe_ids = "http://api.brain-map.org/api/v2/data/query.xml?criteria=model::Probe,rma::criteria,[probe_type$eq'DNA'],products[abbreviation$eq'HumanMA'],gene[acronym$eq"
         end_retrieve_probe_ids = "],rma::options[only$eq'probes.id']"
 
-        self.probe_keys = []
         for gene in self.gene_list:
             url = '{}{}{}'.format(base_retrieve_probe_ids, gene, end_retrieve_probe_ids)
             if self.verbose:

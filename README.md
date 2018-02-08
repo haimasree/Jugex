@@ -37,7 +37,7 @@ else:
 ```
 
 ## Versioning
-0.1
+0.6
 
 ## Authors
 

@@ -12,8 +12,8 @@ Find a set of differentially expressed genes between two user defined volumes of
 
 ### Installation
 ```
-git clone https://github.com/haimasree/Jugex.git
-cd Jugex
+git clone https://github.com/haimasree/pyjugex.git
+cd pyjugex
 python setup.py install
 ```
 ### Usage

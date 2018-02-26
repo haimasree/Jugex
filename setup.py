@@ -3,9 +3,6 @@ from setuptools import setup
 setup(name='pyjugex',
       version='0.6',
       packages=['pyjugex'],
-      package_dir={
-        'pyjugex' : 'pyjugex',
-      },
       license='BSD',
       description='Perform differential gene expression on two chosen brain regions',
       url='https://github.com/haimasree/pyjugex',

@@ -19,22 +19,18 @@ pip install .
 ### Usage
 A typical usage is as follows -
 ```
-import hbp_human_atlas as atlas
-import analysispyjugex
-
-genelist = ['ADRA2A', 'AVPR1B', 'CHRM2', 'CNR1', 'CREB1', 'CRH']
-
+from pyjugex import pyjugex
+from pyjugex import hbp_human_atlas as atlas
+genelist = ['ADRA2A', 'AVPR1B', 'CHRM2']
 roi1 = atlas.jubrain.probability_map('FP1', atlas.MNI152)
 roi2 = atlas.jubrain.probability_map('FP2', atlas.MNI152)
-
-jugex = analysispyjugex.Analysis(gene_cache_dir='.pyjugex', verbose=True)
+jugex = pyjugex.Analysis(gene_cache_dir='.pyjugex', verbose=True)
 result = jugex.DifferentialAnalysis(genelist, roi1, roi2)
 if len([id for id in result if result[id] < .05]) > 0:
-    print('Differentially expressed genes are : ')
+    print('Differentially expressed genes/probes are : ')
     print([id for id in result if result[id] < .05])
 else:
-    print('There are no differentially expressed genes in the given regions')
-```
+print('There are no differentially expressed genes/probes in the given regions')
 
 ## Versioning
 0.6

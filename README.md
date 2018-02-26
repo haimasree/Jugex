@@ -30,7 +30,7 @@ if len([id for id in result if result[id] < .05]) > 0:
     print('Differentially expressed genes/probes are : ')
     print([id for id in result if result[id] < .05])
 else:
-print('There are no differentially expressed genes/probes in the given regions')
+    print('There are no differentially expressed genes/probes in the given regions')
 ```
 
 ## Versioning

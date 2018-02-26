@@ -1,6 +1,6 @@
 from distutils.core import setup
 setup(name='pyjugex',
-      version='0.1',
+      version='0.6',
       description='Perform differential gene expression on two chosen brain regions',
       url='https://github.com/haimasree/Jugex',
       author='Big Data Analytics Group, INM-1, Research Center Juelich',

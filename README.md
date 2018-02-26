@@ -14,7 +14,7 @@ Find a set of differentially expressed genes between two user defined volumes of
 ```
 git clone https://github.com/haimasree/pyjugex.git
 cd pyjugex
-python setup.py install
+pip install .
 ```
 ### Usage
 A typical usage is as follows -

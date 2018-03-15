@@ -9,5 +9,5 @@ setup(name='pyjugex',
       author='Big Data Analytics Group, INM-1, Research Center Juelich',
       author_email='h.bhattacharya@fz-juelich.de',
       #py_modules=['pyjugex', 'hbp_human_atlas'],
-      #install_requires=['numpy', 'scipy', 'statsmodels', 'requests', 'nibabel', 'xmltodict'], 
+      install_requires=['numpy', 'scipy', 'statsmodels', 'requests', 'nibabel', 'xmltodict'], 
       )

@@ -45,3 +45,5 @@ else:
 * Dr. Sebastian Bludau, Dr. Thomas Mühleisen
 * Dr. Timo Dickscheid and other members of BDA-INM1 
 
+## Reference
+Sebastian Bludau, Thomas W. Mühleisen, Simon B. Eickhoff, Michael J. Hawrylycz, Sven Cichon, Katrin Amunts. Integration of transcriptomic and cytoarchitectonic data implicates a role for MAOA and TAC1 in the limbic-cortical network. 2018, Brain Structure and Function. https://doi.org/10.1007/s00429-018-1620-6

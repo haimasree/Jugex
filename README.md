@@ -39,7 +39,7 @@ else:
 
 ## Authors
 
-* Big Data Analytics Group, INM-1, Research Center Juelich
+* Haimasree Bhattacharya
 ## Acknowledgments
 
 * Dr. Sebastian Bludau, Dr. Thomas Mühleisen
